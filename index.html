@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hackathon Certificate Verification</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin: 50px; }
+    input { padding: 10px; width: 250px; margin-right: 10px; }
+    button { padding: 10px 20px; cursor: pointer; }
+    #result { margin-top: 20px; font-size: 18px; }
+    p { margin: 5px 0; }
+  </style>
+</head>
+<body>
+
+  <h1>Hackathon Certificate Verification</h1>
+  <p>Enter your Certificate ID or scan the QR code</p>
+
+  <input type="text" id="certID" placeholder="Enter Certificate ID" />
+  <button onclick="verify()">Verify</button>
+
+  <div id="result"></div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
