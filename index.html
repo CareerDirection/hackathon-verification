@@ -47,13 +47,13 @@
 
 <body>
 
-  <!-- Logo at the top -->
+  <!-- Logo at the top (ONLY ONE) -->
   <div style="text-align:center; margin-bottom:20px;">
     <img src="logo.png" width="250" height="100" alt="Career Direction Logo">
   </div>
 
   <h1>Hackathon Certificate Verification</h1>
-  <p>Enter Certificate ID (example: CDHACK2025-000) or scan QR code linking to this page with ?id=...</p>
+  <p>Enter your Certificate ID below.</p>
 
   <input type="text" id="certID" placeholder="Enter Certificate ID" />
   <button onclick="verify()">Verify</button>
@@ -61,7 +61,7 @@
   <div id="result"></div>
 
   <script>
-    // Your Firebase Configuration
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyAjgRuyO6S--alDv0f_2qG6Ev9jur2eieo",
       authDomain: "hackathon-verification.firebaseapp.com",
@@ -72,8 +72,7 @@
       appId: "1:823847050976:web:05ac6045f345f5ab057a85"
     };
 
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     async function verify() {
@@ -91,10 +90,6 @@
 
         if (certData) {
           resultDiv.innerHTML = `
-            <div style="text-align:center; margin-bottom:15px;">
-              <img src="logo.png" width="250" height="100" alt="Career Direction Logo">
-            </div>
-
             <p class="valid">✔ Certificate Verified</p>
             <p><strong>Name:</strong> ${certData.name}</p>
             <p><strong>Certificate ID:</strong> ${certData.id}</p>
@@ -115,14 +110,7 @@
       }
     }
 
-    // Auto-fill from QR Code (?id=...)
-    const urlParams = new URLSearchParams(window.location.search);
-    const preID = urlParams.get('id');
+    // Auto-fill from QR Code
+    const preID = new URLSearchParams(window.location.search).get('id');
     if (preID) {
-      document.getElementById('certID').value = preID;
-      verify();
-    }
-  </script>
-
-</body>
-</html>
+      document.getEl
