@@ -52,15 +52,22 @@
   </div>
 
   <h1>Hackathon Certificate Verification</h1>
-  <p>Enter your Hackathon Certificate ID below.</p>
 
-  <input type="text" id="certID" placeholder="Enter Certificate ID (CDHACK2025-001)" />
+  <!-- Same spacing as Internship -->
+  <p style="margin-top: 10px; margin-bottom: 20px;">
+    Enter your Hackathon Certificate ID below.
+  </p>
+
+  <input 
+    type="text" 
+    id="certID" 
+    placeholder="Enter Cert-ID (CDHACK2025-000)" 
+  />
   <button onclick="verify()">Verify</button>
 
   <div id="result"></div>
 
   <script>
-    // Your secure backend Worker URL
     const WORKER_URL = "https://hackathon-verification.cd-careerdirection.workers.dev";
 
     async function verify() {
@@ -102,7 +109,6 @@
       }
     }
 
-    // Auto-Fill from QR (if ?id= is present)
     const queryID = new URLSearchParams(window.location.search).get("id");
     if (queryID) {
       document.getElementById("certID").value = queryID;
