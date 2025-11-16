@@ -47,7 +47,6 @@
 
 <body>
 
-  <!-- Logo at the top (ONLY ONE) -->
   <div style="text-align:center; margin-bottom:20px;">
     <img src="logo.png" width="250" height="100" alt="Career Direction Logo">
   </div>
@@ -79,7 +78,7 @@
       const certID = document.getElementById('certID').value.trim();
       const resultDiv = document.getElementById('result');
 
-      if(certID === "") {
+      if (certID === "") {
         resultDiv.innerHTML = "<p class='invalid'>Please enter a Certificate ID.</p>";
         return;
       }
@@ -104,13 +103,18 @@
         } else {
           resultDiv.innerHTML = "<p class='invalid'>❌ Certificate not found or invalid.</p>";
         }
-
       } catch (error) {
         resultDiv.innerHTML = "<p class='invalid'>Error connecting to server.</p>";
       }
     }
 
-    // Auto-fill from QR Code
+    // Auto-fill Certificate ID from QR Code URL
     const preID = new URLSearchParams(window.location.search).get('id');
     if (preID) {
-      document.getEl
+      document.getElementById('certID').value = preID;
+      verify();
+    }
+  </script>
+
+</body>
+</html>
