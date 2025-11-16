@@ -9,7 +9,7 @@
     h1 { text-align:center; }
     input { padding:10px; width:60%; margin-right:8px; }
     button { padding:10px 14px; }
-    #result { margin-top:20px; padding:16px; border-radius:6px; border:1px solid #ddd; background:#fafafa; }
+    #result { margin-top:20px; padding:16px; border-radius:6px; border:1px solid #ddd; background:#fafafa; display:none; }
     .valid { color:green; font-weight:700; }
     .notfound { color:red; font-weight:700; }
     pre { white-space:pre-wrap; word-break:break-word; }
@@ -22,18 +22,18 @@
   <input id="certId" type="text" placeholder="Enter Certificate ID" />
   <button id="verifyBtn">Verify</button>
 
-  <div id="result" aria-live="polite" style="display:none;"></div>
+  <div id="result" aria-live="polite"></div>
 
 <script>
 (async function(){
-  // CHANGE this to your DB base URL (no trailing path)
+  // ---- IMPORTANT: Use your Realtime DB base URL BELOW (no trailing slash) ----
   const DB_BASE = "https://hackathon-verification-default-rtdb.firebaseio.com";
 
   const input = document.getElementById('certId');
   const btn = document.getElementById('verifyBtn');
   const result = document.getElementById('result');
 
-  // If URL has ?id=CDHACK..., auto-fill and verify
+  // Auto-fill if URL has ?id=...
   const params = new URLSearchParams(window.location.search);
   const autoId = params.get('id');
   if (autoId) {
@@ -45,35 +45,32 @@
 
   async function verify(certId) {
     result.style.display = 'block';
-    result.innerHTML = "<em>Checking...</em>";
+    result.innerHTML = "<em>Checking…</em>";
 
     if (!certId) {
       result.innerHTML = "<p class='notfound'>Please enter a Certificate ID.</p>";
       return;
     }
 
-    // Build correct REST URL: /certificates/<ID>.json
-    const url = `${DB_BASE}/certificates/${encodeURIComponent(certId)}.json`;
+    // Fetch from root path (because your data is currently at root)
+    const url = `${DB_BASE}/${encodeURIComponent(certId)}.json`;
 
     try {
       const resp = await fetch(url, { method: 'GET' });
-      // show helpful debug in console for troubleshooting
-      console.log("fetch", url, "status", resp.status);
+      console.log('fetch', url, 'status', resp.status);
 
       if (!resp.ok) {
-        // 401/403/404 etc
-        result.innerHTML = `<p class='notfound'>Error: server returned ${resp.status}. Check your Firebase rules or DB URL.</p>`;
+        result.innerHTML = `<p class='notfound'>Error: server returned ${resp.status}. Check Firebase rules or DB URL.</p>`;
         return;
       }
 
       const data = await resp.json();
 
       if (data === null) {
-        result.innerHTML = `<p class='notfound'>❌ Certificate not found for ID <strong>${certId}</strong></p>`;
+        result.innerHTML = `<p class='notfound'>❌ Certificate not found for ID <strong>${escapeHtml(certId)}</strong></p>`;
         return;
       }
 
-      // Show the fields that exist (safe access)
       result.innerHTML = `
         <p class="valid">✔ Certificate Verified</p>
         <p><strong>Name:</strong> ${escapeHtml(data.name || '—')}</p>
@@ -83,23 +80,17 @@
         <p><strong>Location:</strong> ${escapeHtml(data.location || '—')}</p>
         <p><strong>Issuer:</strong> ${escapeHtml(data.issuer || '—')}</p>
         <p><strong>Status:</strong> ${escapeHtml(data.status || '—')}</p>
-        <details style="margin-top:8px;"><summary>Raw data (for debugging)</summary><pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre></details>
+        <details style="margin-top:8px;"><summary>Raw data</summary><pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre></details>
       `;
     } catch (err) {
       console.error(err);
-      result.innerHTML = `<p class='notfound'>Network error or blocked request. Check Console (F12) for details.</p>`;
+      result.innerHTML = `<p class='notfound'>Network error or blocked request. See console for details.</p>`;
     }
   }
 
-  // small utility to avoid HTML injection when showing data
   function escapeHtml(s) {
-    if (!s && s !== 0) return '';
-    return String(s)
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;')
-      .replace(/'/g,'&#039;');
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
   }
 })();
 </script>
