@@ -1,99 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hackathon Certificate Verification</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
   <style>
-    body { font-family: Arial, sans-serif; padding: 30px; max-width:700px; margin:auto; text-align:left; }
-    h1 { text-align:center; }
-    input { padding:10px; width:60%; margin-right:8px; }
-    button { padding:10px 14px; }
-    #result { margin-top:20px; padding:16px; border-radius:6px; border:1px solid #ddd; background:#fafafa; display:none; }
-    .valid { color:green; font-weight:700; }
-    .notfound { color:red; font-weight:700; }
-    pre { white-space:pre-wrap; word-break:break-word; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 40px;
+    }
+    input {
+      padding: 10px;
+      width: 260px;
+      margin-right: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 25px;
+      font-size: 18px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
+    }
+    p {
+      margin: 6px 0;
+    }
+    .valid {
+      color: green;
+      font-weight: bold;
+    }
+    .invalid {
+      color: red;
+      font-weight: bold;
+    }
   </style>
 </head>
+
 <body>
+
+  <!-- Logo at the top -->
+  <div style="text-align:center; margin-bottom:20px;">
+    <img src="logo.png" width="250" height="100" alt="Career Direction Logo">
+  </div>
+
   <h1>Hackathon Certificate Verification</h1>
-  <p>Enter Certificate ID (example: <code>CDHACK2025-000</code>) or scan QR code that links to this page with ?id=...</p>
+  <p>Enter Certificate ID (example: CDHACK2025-000) or scan QR code linking to this page with ?id=...</p>
 
-  <input id="certId" type="text" placeholder="Enter Certificate ID" />
-  <button id="verifyBtn">Verify</button>
+  <input type="text" id="certID" placeholder="Enter Certificate ID" />
+  <button onclick="verify()">Verify</button>
 
-  <div id="result" aria-live="polite"></div>
+  <div id="result"></div>
 
-<script>
-(async function(){
-  // ---- IMPORTANT: Use your Realtime DB base URL BELOW (no trailing slash) ----
-  const DB_BASE = "https://hackathon-verification-default-rtdb.firebaseio.com";
+  <script>
+    // Your Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAjgRuyO6S--alDv0f_2qG6Ev9jur2eieo",
+      authDomain: "hackathon-verification.firebaseapp.com",
+      databaseURL: "https://hackathon-verification-default-rtdb.firebaseio.com",
+      projectId: "hackathon-verification",
+      storageBucket: "hackathon-verification.firebasestorage.app",
+      messagingSenderId: "823847050976",
+      appId: "1:823847050976:web:05ac6045f345f5ab057a85"
+    };
 
-  const input = document.getElementById('certId');
-  const btn = document.getElementById('verifyBtn');
-  const result = document.getElementById('result');
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-  // Auto-fill if URL has ?id=...
-  const params = new URLSearchParams(window.location.search);
-  const autoId = params.get('id');
-  if (autoId) {
-    input.value = autoId;
-    verify(autoId);
-  }
+    async function verify() {
+      const certID = document.getElementById('certID').value.trim();
+      const resultDiv = document.getElementById('result');
 
-  btn.addEventListener('click', () => verify(input.value.trim()));
-
-  async function verify(certId) {
-    result.style.display = 'block';
-    result.innerHTML = "<em>Checking…</em>";
-
-    if (!certId) {
-      result.innerHTML = "<p class='notfound'>Please enter a Certificate ID.</p>";
-      return;
-    }
-
-    // Fetch from root path (because your data is currently at root)
-    const url = `${DB_BASE}/${encodeURIComponent(certId)}.json`;
-
-    try {
-      const resp = await fetch(url, { method: 'GET' });
-      console.log('fetch', url, 'status', resp.status);
-
-      if (!resp.ok) {
-        result.innerHTML = `<p class='notfound'>Error: server returned ${resp.status}. Check Firebase rules or DB URL.</p>`;
+      if(certID === "") {
+        resultDiv.innerHTML = "<p class='invalid'>Please enter a Certificate ID.</p>";
         return;
       }
 
-      const data = await resp.json();
+      try {
+        const snapshot = await db.ref(certID).once("value");
+        const certData = snapshot.val();
 
-      if (data === null) {
-        result.innerHTML = `<p class='notfound'>❌ Certificate not found for ID <strong>${escapeHtml(certId)}</strong></p>`;
-        return;
+        if (certData) {
+          resultDiv.innerHTML = `
+            <div style="text-align:center; margin-bottom:15px;">
+              <img src="logo.png" width="250" height="100" alt="Career Direction Logo">
+            </div>
+
+            <p class="valid">✔ Certificate Verified</p>
+            <p><strong>Name:</strong> ${certData.name}</p>
+            <p><strong>Certificate ID:</strong> ${certData.id}</p>
+            <p><strong>Hackathon:</strong> ${certData.hackathon}</p>
+            <p><strong>Achievement:</strong> ${certData.achievement_level}</p>
+            <p><strong>Location:</strong> ${certData.location}</p>
+            <p><strong>Issuer:</strong> ${certData.issuer}</p>
+            <p><strong>Status:</strong> ${certData.status}</p>
+            <hr>
+            <p style="font-size:14px; color:gray;">Raw data: ${JSON.stringify(certData)}</p>
+          `;
+        } else {
+          resultDiv.innerHTML = "<p class='invalid'>❌ Certificate not found or invalid.</p>";
+        }
+
+      } catch (error) {
+        resultDiv.innerHTML = "<p class='invalid'>Error connecting to server.</p>";
       }
-
-      result.innerHTML = `
-        <p class="valid">✔ Certificate Verified</p>
-        <p><strong>Name:</strong> ${escapeHtml(data.name || '—')}</p>
-        <p><strong>Certificate ID:</strong> ${escapeHtml(data.id || certId)}</p>
-        <p><strong>Hackathon:</strong> ${escapeHtml(data.hackathon || '—')}</p>
-        <p><strong>Achievement:</strong> ${escapeHtml(data.achievement_level || '—')}</p>
-        <p><strong>Location:</strong> ${escapeHtml(data.location || '—')}</p>
-        <p><strong>Issuer:</strong> ${escapeHtml(data.issuer || '—')}</p>
-        <p><strong>Status:</strong> ${escapeHtml(data.status || '—')}</p>
-        <details style="margin-top:8px;"><summary>Raw data</summary><pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre></details>
-      `;
-    } catch (err) {
-      console.error(err);
-      result.innerHTML = `<p class='notfound'>Network error or blocked request. See console for details.</p>`;
     }
-  }
 
-  function escapeHtml(s) {
-    if (s === null || s === undefined) return '';
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-  }
-})();
-</script>
+    // Auto-fill from QR Code (?id=...)
+    const urlParams = new URLSearchParams(window.location.search);
+    const preID = urlParams.get('id');
+    if (preID) {
+      document.getElementById('certID').value = preID;
+      verify();
+    }
+  </script>
 
 </body>
 </html>
