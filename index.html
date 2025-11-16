@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hackathon Certificate Verification</title>
 
   <style>
@@ -15,10 +15,12 @@
       padding: 10px;
       width: 260px;
       margin-right: 10px;
+      font-size: 16px;
     }
     button {
       padding: 10px 20px;
       cursor: pointer;
+      font-size: 16px;
     }
     #result {
       margin-top: 25px;
@@ -50,27 +52,27 @@
   </div>
 
   <h1>Hackathon Certificate Verification</h1>
-  <p>Enter your Certificate ID below.</p>
+  <p>Enter your Hackathon Certificate ID below.</p>
 
-  <input type="text" id="certID" placeholder="Enter Certificate ID" />
+  <input type="text" id="certID" placeholder="Enter Certificate ID (CDHACK2025-001)" />
   <button onclick="verify()">Verify</button>
 
   <div id="result"></div>
 
   <script>
-    // 🔒 Your secure backend API (Cloudflare Worker)
+    // Your secure backend Worker URL
     const WORKER_URL = "https://hackathon-verification.cd-careerdirection.workers.dev";
 
     async function verify() {
-      const certID = document.getElementById('certID').value.trim();
-      const resultDiv = document.getElementById('result');
+      const certID = document.getElementById("certID").value.trim();
+      const resultDiv = document.getElementById("result");
 
-      if (certID === "") {
+      if (!certID) {
         resultDiv.innerHTML = "<p class='invalid'>Please enter a Certificate ID.</p>";
         return;
       }
 
-      resultDiv.innerHTML = "<em>Checking…</em>";
+      resultDiv.innerHTML = "<em>Checking...</em>";
 
       try {
         const response = await fetch(`${WORKER_URL}/?id=${encodeURIComponent(certID)}`);
@@ -87,8 +89,8 @@
             <p><strong>Issuer:</strong> ${certData.issuer}</p>
             <p><strong>Status:</strong> ${certData.status}</p>
             <hr>
-            <p style="font-size:20px; font-weight:bold; color:#444; text-align:center; margin-top:10px;">
-              😊 All the Best for your Future!
+            <p style="font-size:20px; font-weight:bold; color:#444; text-align:center;">
+              😊 Wish You Continued Success!
             </p>
           `;
         } else {
@@ -100,10 +102,10 @@
       }
     }
 
-    // Auto-fill if `?id=` is in the URL
-    const preID = new URLSearchParams(window.location.search).get("id");
-    if (preID) {
-      document.getElementById("certID").value = preID;
+    // Auto-Fill from QR (if ?id= is present)
+    const queryID = new URLSearchParams(window.location.search).get("id");
+    if (queryID) {
+      document.getElementById("certID").value = queryID;
       verify();
     }
   </script>
