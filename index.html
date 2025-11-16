@@ -1,33 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
   <title>Hackathon Certificate Verification</title>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js"></script>
-
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 50px; }
-    input { padding: 10px; width: 250px; margin-right: 10px; }
-    button { padding: 10px 20px; cursor: pointer; }
-    #result { margin-top: 20px; font-size: 18px; }
-    p { margin: 5px 0; }
+    body { font-family: Arial, sans-serif; padding: 30px; max-width:700px; margin:auto; text-align:left; }
+    h1 { text-align:center; }
+    input { padding:10px; width:60%; margin-right:8px; }
+    button { padding:10px 14px; }
+    #result { margin-top:20px; padding:16px; border-radius:6px; border:1px solid #ddd; background:#fafafa; }
+    .valid { color:green; font-weight:700; }
+    .notfound { color:red; font-weight:700; }
+    pre { white-space:pre-wrap; word-break:break-word; }
   </style>
 </head>
 <body>
-
   <h1>Hackathon Certificate Verification</h1>
-  <p>Enter your Certificate ID or scan the QR code</p>
+  <p>Enter Certificate ID (example: <code>CDHACK2025-000</code>) or scan QR code that links to this page with ?id=...</p>
 
-  <input type="text" id="certID" placeholder="Enter Certificate ID" />
-  <button onclick="verify()">Verify</button>
+  <input id="certId" type="text" placeholder="Enter Certificate ID" />
+  <button id="verifyBtn">Verify</button>
 
-  <div id="result"></div>
+  <div id="result" aria-live="polite" style="display:none;"></div>
 
-  <script src="script.js"></script>
+<script>
+(async function(){
+  // CHANGE this to your DB base URL (no trailing path)
+  const DB_BASE = "https://hackathon-verification-default-rtdb.firebaseio.com";
+
+  const input = document.getElementById('certId');
+  const btn = document.getElementById('verifyBtn');
+  const result = document.getElementById('result');
+
+  // If URL has ?id=CDHACK..., auto-fill and verify
+  const params = new URLSearchParams(window.location.search);
+  const autoId = params.get('id');
+  if (autoId) {
+    input.value = autoId;
+    verify(autoId);
+  }
+
+  btn.addEventListener('click', () => verify(input.value.trim()));
+
+  async function verify(certId) {
+    result.style.display = 'block';
+    result.innerHTML = "<em>Checking...</em>";
+
+    if (!certId) {
+      result.innerHTML = "<p class='notfound'>Please enter a Certificate ID.</p>";
+      return;
+    }
+
+    // Build correct REST URL: /certificates/<ID>.json
+    const url = `${DB_BASE}/certificates/${encodeURIComponent(certId)}.json`;
+
+    try {
+      const resp = await fetch(url, { method: 'GET' });
+      // show helpful debug in console for troubleshooting
+      console.log("fetch", url, "status", resp.status);
+
+      if (!resp.ok) {
+        // 401/403/404 etc
+        result.innerHTML = `<p class='notfound'>Error: server returned ${resp.status}. Check your Firebase rules or DB URL.</p>`;
+        return;
+      }
+
+      const data = await resp.json();
+
+      if (data === null) {
+        result.innerHTML = `<p class='notfound'>❌ Certificate not found for ID <strong>${certId}</strong></p>`;
+        return;
+      }
+
+      // Show the fields that exist (safe access)
+      result.innerHTML = `
+        <p class="valid">✔ Certificate Verified</p>
+        <p><strong>Name:</strong> ${escapeHtml(data.name || '—')}</p>
+        <p><strong>Certificate ID:</strong> ${escapeHtml(data.id || certId)}</p>
+        <p><strong>Hackathon:</strong> ${escapeHtml(data.hackathon || '—')}</p>
+        <p><strong>Achievement:</strong> ${escapeHtml(data.achievement_level || '—')}</p>
+        <p><strong>Location:</strong> ${escapeHtml(data.location || '—')}</p>
+        <p><strong>Issuer:</strong> ${escapeHtml(data.issuer || '—')}</p>
+        <p><strong>Status:</strong> ${escapeHtml(data.status || '—')}</p>
+        <details style="margin-top:8px;"><summary>Raw data (for debugging)</summary><pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre></details>
+      `;
+    } catch (err) {
+      console.error(err);
+      result.innerHTML = `<p class='notfound'>Network error or blocked request. Check Console (F12) for details.</p>`;
+    }
+  }
+
+  // small utility to avoid HTML injection when showing data
+  function escapeHtml(s) {
+    if (!s && s !== 0) return '';
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#039;');
+  }
+})();
+</script>
 
 </body>
 </html>
