@@ -1,120 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hackathon Certificate Verification</title>
+<script>
+  const WORKER_URL = "https://hackathon-verification.cd-careerdirection.workers.dev";
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 40px;
+  async function verify() {
+    const certID = document.getElementById("certID").value.trim();
+    const resultDiv = document.getElementById("result");
+
+    if (!certID) {
+      resultDiv.innerHTML = "<p class='invalid'>Please enter a Certificate ID.</p>";
+      return;
     }
-    input {
-      padding: 10px;
-      width: 260px;
-      margin-right: 10px;
-      font-size: 16px;
-    }
-    button {
-      padding: 10px 20px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    #result {
-      margin-top: 25px;
-      font-size: 18px;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: left;
-    }
-    p {
-      margin: 6px 0;
-    }
-    .valid {
-      color: green;
-      font-weight: bold;
-    }
-    .invalid {
-      color: red;
-      font-weight: bold;
-    }
-  </style>
-</head>
 
-<body>
+    resultDiv.innerHTML = "<em>Checking...</em>";
 
-  <!-- Logo -->
-  <div style="text-align:center; margin-bottom:20px;">
-    <img src="logo.png" width="250" height="100" alt="Career Direction Logo">
-  </div>
+    try {
+      const response = await fetch(`${WORKER_URL}/?id=${encodeURIComponent(certID)}`);
+      const certData = await response.json();
 
-  <h1>Hackathon Certificate Verification</h1>
-
-  <!-- Same spacing as Internship -->
-  <p style="margin-top: 10px; margin-bottom: 20px;">
-    Enter your Hackathon Certificate ID below.
-  </p>
-
-  <input 
-    type="text" 
-    id="certID" 
-    placeholder="Enter Cert-ID (CDHACK2025-000)" 
-  />
-  <button onclick="verify()">Verify</button>
-
-  <div id="result"></div>
-
-  <script>
-    const WORKER_URL = "https://hackathon-verification.cd-careerdirection.workers.dev";
-
-    async function verify() {
-      const certID = document.getElementById("certID").value.trim();
-      const resultDiv = document.getElementById("result");
-
-      if (!certID) {
-        resultDiv.innerHTML = "<p class='invalid'>Please enter a Certificate ID.</p>";
-        return;
+      if (certData && certData.id) {
+        resultDiv.innerHTML = `
+          <p class="valid">✔ Certificate Verified</p>
+          <p><strong>Name:</strong> ${certData.name}</p>
+          <p><strong>Certificate ID:</strong> ${certData.id}</p>
+          <p><strong>Hackathon:</strong> ${certData.hackathon}</p>
+          <p><strong>Achievement:</strong> ${certData.achievement_level}</p>
+          <p><strong>Location:</strong> ${certData.location}</p>
+          <p><strong>Issuer:</strong> ${certData.issuer}</p>
+          <p><strong>Status:</strong> ${certData.status}</p>
+          <hr>
+          <p style="font-size:20px; font-weight:bold; color:#444; text-align:center;">
+            😊 Wish You Continued Success!
+          </p>
+        `;
+      } else {
+        resultDiv.innerHTML = "<p class='invalid'>❌ Certificate not found or invalid.</p>";
       }
 
-      resultDiv.innerHTML = "<em>Checking...</em>";
-
-      try {
-        const response = await fetch(`${WORKER_URL}/?id=${encodeURIComponent(certID)}`);
-        const certData = await response.json();
-
-        if (certData && certData.id) {
-          resultDiv.innerHTML = `
-            <p class="valid">✔ Certificate Verified</p>
-            <p><strong>Name:</strong> ${certData.name}</p>
-            <p><strong>Certificate ID:</strong> ${certData.id}</p>
-            <p><strong>Hackathon:</strong> ${certData.hackathon}</p>
-            <p><strong>Achievement:</strong> ${certData.achievement_level}</p>
-            <p><strong>Location:</strong> ${certData.location}</p>
-            <p><strong>Issuer:</strong> ${certData.issuer}</p>
-            <p><strong>Status:</strong> ${certData.status}</p>
-            <hr>
-            <p style="font-size:20px; font-weight:bold; color:#444; text-align:center;">
-              😊 Wish You Continued Success!
-            </p>
-          `;
-        } else {
-          resultDiv.innerHTML = "<p class='invalid'>❌ Certificate not found or invalid.</p>";
-        }
-
-      } catch (error) {
-        resultDiv.innerHTML = "<p class='invalid'>Error connecting to secure server.</p>";
-      }
+    } catch (error) {
+      resultDiv.innerHTML = "<p class='invalid'>Error connecting to secure server.</p>";
     }
+  }
 
-    const queryID = new URLSearchParams(window.location.search).get("id");
-    if (queryID) {
-      document.getElementById("certID").value = queryID;
-      verify();
-    }
-  </script>
+  const queryID = new URLSearchParams(window.location.search).get("id");
+  if (queryID) {
+    document.getElementById("certID").value = queryID;
+    verify();
+  }
 
-</body>
-</html>
+  // Footer Copyright
+  console.log("© Career Direction - All Rights Reserved");
+
+</script>
