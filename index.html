@@ -41,6 +41,14 @@
       color: red;
       font-weight: bold;
     }
+    
+    /* Footer styling */
+    footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #555;
+      text-align: center;
+    }
   </style>
 </head>
 
@@ -53,7 +61,6 @@
 
   <h1>Hackathon Certificate Verification</h1>
 
-  <!-- Same spacing as Internship -->
   <p style="margin-top: 10px; margin-bottom: 20px;">
     Enter your Hackathon Certificate ID below.
   </p>
@@ -66,6 +73,10 @@
   <button onclick="verify()">Verify</button>
 
   <div id="result"></div>
+
+  <footer>
+    © Career Direction - All Rights Reserved
+  </footer>
 
   <script>
     const WORKER_URL = "https://hackathon-verification.cd-careerdirection.workers.dev";
